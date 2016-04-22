@@ -1,5 +1,3 @@
-# complieDocker
-使用源码安装Docker，便于调试分析其数据流。
 # Docker 源码编译
 
 ------
