@@ -60,4 +60,7 @@ cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/clie
 > * cp /home/thebeeman/zdat/ /home/thebeeman/zdat/src/github.com/docker/ -rf
 > * export GOPATH=/home/thebeeman/zdat/:$GOPATH
 
+(3) 如果提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
+> * cp /home/thebeeman/docker/dockerversion/version_autogen.go  /home/thebeeman/src/github.com/docker/docker/dockerversion/
+
 2.6 hack/make.sh or hack/make.sh binary
