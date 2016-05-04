@@ -22,23 +22,41 @@ make build的目的是创建docker所需的运行环境，便于后续生成dock
 
 make binary的目的是创建docker的二进制文件，实质是执行hack/make/xx的shell脚本文件，所以只需将该文件中LDFLAGS的"-w"或"-s"选项去除即可。实际上，直接在主机上编译源码中的hack/make目录下的脚本文件即可。完全没必要再docker中创建源码的编译环境，然后再编译docker源码的方法。此外，由于自动执行时的Makefile文件存在多个步骤，手动执行时需要自己完成。譬如，编译过程中需要设置GOPATH目录，docker_src_code在该目录下被编译生成可执行文件，还需安装brctl-tools等等。
 
-2.1 注释掉Makefile中的make build选项
-
-2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；
-    去除hack/make/binary文件中LDFLAGS中"-s"选项
-
-2.3 创建GOPATH，设置环境变量：
-
-> * export GOPATH=/root/docker-data/src/:/root/docker-data/docker/docker/vendor/:/root/docker-data/(按照错误提示多次创建关联目录，拷贝source源码，如出现"xx undefined"错误即GOPATH路径未设置好，观察import package的路径)
-
-2.4 安装工具集：
+2.1 安装工具集：
 [btrfs-progs](https://github.com/kdave/btrfs-progs.git)
 [llvm](https://mirrors.kernel.org/sourceware/lvm2/LVM2.2.02.103.tgz)
 
-2.5 安装golang，替换系统默认(老版本编译时诸多语法问题过不去)
+2.2 安装golang，替换系统默认(老版本编译时诸多语法问题过不去)
 > * curl -fsSL "https://storage.googleapis.com/golang/go1.5.4.linux-amd64.tar.gz
 > * tar -xvf -C /usr/local go1.5.4.linux-amd64.tar.gz
 > * mv /usr/bin/go /usr/bin/go.old
 > * ln -s /usr/local/go/bin/go /usr/bin/go
+
+2.3 注释掉Makefile中的make build选项
+
+2.4 去除hack/make.sh文件中LDFLAGS中"-w"选项；
+    去除hack/make/binary文件中LDFLAGS中"-s"选项
+
+2.5 创建GOPATH，设置环境变量：
+> * mkdir -p /home/thebeeman/zdat/docker/vendor
+> * export GOPATH=/home/thebeeman/zdat/docker/vendor
+(1) 执行hack/make.sh binary，报错
+------------------------------------------------------------------------------------------------
+---> Making bundle: binary (in bundles/1.12.0-dev/binary)
+Building: bundles/1.12.0-dev/binary-client/docker-1.12.0-dev
+cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/client" in any of:
+	/usr/local/go/src/github.com/docker/docker/api/client (from $GOROOT)
+	/home/thebeeman/zdat/docker/vendor/src/github.com/docker/docker/api/client (from $GOPATH)
+------------------------------------------------------------------------------------------------
+(2) 根据错误提示，未找到client文件，索引方式为"github.com/docker/docker/api/client"，说明当前"$GOPATH/src/github.com/docker/docker/api/client"不存在client文件夹，查找：
+> * find /home/thebeeman/zdat/docker -name "client" 
+
+------------------------------------------------------------------------------------------------
+/home/thebeeman/zdat/docker/api/client
+------------------------------------------------------------------------------------------------
+说明client位于主目录下，于是在主目录下创建索引文件夹：
+> * mkdir -p /home/thebeeman/zdat/src/github.com/docker/
+> * cp /home/thebeeman/zdat/ /home/thebeeman/zdat/src/github.com/docker/ -rf
+> * export GOPATH=/home/thebeeman/zdat/:$GOPATH
 
 2.6 hack/make.sh or hack/make.sh binary 
