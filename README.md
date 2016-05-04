@@ -42,20 +42,19 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 > * export GOPATH=/home/thebeeman/zdat/docker/vendor
 
 (1) 执行hack/make.sh binary，报错
-------------------------------------------------------------------------------------------------
+
 ---> Making bundle: binary (in bundles/1.12.0-dev/binary)
 Building: bundles/1.12.0-dev/binary-client/docker-1.12.0-dev
 cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/client" in any of:
 	/usr/local/go/src/github.com/docker/docker/api/client (from $GOROOT)
 	/home/thebeeman/zdat/docker/vendor/src/github.com/docker/docker/api/client (from $GOPATH)
-------------------------------------------------------------------------------------------------
+
 
 (2) 根据错误提示，未找到client文件，索引方式为"github.com/docker/docker/api/client"，说明当前"$GOPATH/src/github.com/docker/docker/api/client"不存在client文件夹，查找：
 > * find /home/thebeeman/zdat/docker -name "client" 
 
-------------------------------------------------------------------------------------------------
 /home/thebeeman/zdat/docker/api/client
-------------------------------------------------------------------------------------------------
+
 说明client位于主目录下，于是在主目录下创建索引文件夹：
 > * mkdir -p /home/thebeeman/zdat/src/github.com/docker/
 > * cp /home/thebeeman/zdat/ /home/thebeeman/zdat/src/github.com/docker/ -rf
