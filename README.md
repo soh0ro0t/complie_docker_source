@@ -60,4 +60,16 @@ cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/clie
 > * cp /home/thebeeman/zdat/ /home/thebeeman/zdat/src/github.com/docker/ -rf
 > * export GOPATH=/home/thebeeman/zdat/:$GOPATH
 
-2.6 hack/make.sh or hack/make.sh binary 
+2.6 hack/make.sh or hack/make.sh binary，最终生成的文件
+
+├── binary
+├── binary-client
+│   ├── docker -> docker-1.12.0-dev
+│   ├── docker-1.12.0-dev
+│   ├── docker-1.12.0-dev.md5
+│   └── docker-1.12.0-dev.sha256
+└── binary-daemon
+    ├── dockerd -> dockerd-1.12.0-dev
+    ├── dockerd-1.12.0-dev
+    ├── dockerd-1.12.0-dev.md5
+    └── dockerd-1.12.0-dev.sha256
