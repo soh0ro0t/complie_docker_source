@@ -27,7 +27,9 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；
     去除hack/make/binary文件中LDFLAGS中"-s"选项
 
-2.3 创建GOPATH，设置环境变量：export GOPATH=/root/docker-data/src/:/root/docker-data/docker/docker/vendor/:/root/docker-data/(按照错误多次提示创建关联目录，拷贝source源码，如出现"xx undefined"错误即GOPATH路径未设置好，观察import package的路径)
+2.3 创建GOPATH，设置环境变量：
+
+> * export GOPATH=/root/docker-data/src/:/root/docker-data/docker/docker/vendor/:/root/docker-data/(按照错误多次提示创建关联目录，拷贝source源码，如出现"xx undefined"错误即GOPATH路径未设置好，观察import package的路径)
 
 2.4 安装工具集：
 [btrfs-progs](https://github.com/kdave/btrfs-progs.git)
