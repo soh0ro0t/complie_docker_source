@@ -27,7 +27,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 [llvm](https://mirrors.kernel.org/sourceware/lvm2/LVM2.2.02.103.tgz)
 
 2.2 安装golang，替换系统默认(老版本编译时诸多语法问题过不去)
-> * curl -fsSL "https://storage.googleapis.com/golang/go1.5.4.linux-amd64.tar.gz
+> * curl -fsSL "https://storage.googleapis.com/golang/go1.5.4.linux-amd64.tar.gz"
 > * tar -xvf -C /usr/local go1.5.4.linux-amd64.tar.gz
 > * mv /usr/bin/go /usr/bin/go.old
 > * ln -s /usr/local/go/bin/go /usr/bin/go
