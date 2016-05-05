@@ -38,7 +38,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
     去除hack/make/binary文件中LDFLAGS中"-s"选项
 
 2.5 创建GOPATH，设置环境变量：
-> * mkdir -p /home/thebeeman/zdat/docker/vendor
+> * mkdir -p /home/thebeeman/zdat && cd /home/thebeeman/zdat && git clone https://github.com/docker/docker
 > * export GOPATH=/home/thebeeman/zdat/docker/vendor
 
 (1) 执行hack/make.sh binary，报错
