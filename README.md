@@ -67,4 +67,5 @@ cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/clie
 
 > * vim ./vendor/src/github.com/docker/go-connections/sockets/sockets.go
 > * -- const defaultTimeout = 32 * time.Second | ++ const defaultTimeout = 10800 * time.Second
+
 2.6 hack/make.sh or hack/make.sh binary
