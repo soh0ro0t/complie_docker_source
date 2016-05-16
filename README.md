@@ -63,4 +63,8 @@ cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/clie
 (3) 如果提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
 > * cp /home/thebeeman/docker/dockerversion/version_autogen.go  /home/thebeeman/src/github.com/docker/docker/dockerversion/
 
+(4) 修改daemon socker的默认timeout值，因为调试时需花费大量时间，改之使得daemon等待时间变长：
+
+> * vim ./vendor/src/github.com/docker/go-connections/sockets/sockets.go
+> * -- const defaultTimeout = 32 * time.Second | ++ const defaultTimeout = 10800 * time.Second
 2.6 hack/make.sh or hack/make.sh binary
