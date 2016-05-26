@@ -70,6 +70,10 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 
 运行：hack/make.sh or hack/make.sh binary
 
-如报错提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
+(1) 报错提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
 > * cp $(find /home/thebeeman/zgo  "version_autogen.go") /home/thebeeman/zgo/src/github.com/docker/docker/dockerversion/
 
+(2) 报错提示 "../containerd/api/grpc/types/api.pb.go:74: undefined: proto.ProtoPackageIsVersion1"
+
+说明编译docker源码中的api.pb.go文件时，由于GOPATH路径存在先后问题，错误的定位到../containerd/api/grpc/types/api.pb.go文件中，而非docker自身路径下。更改GOPATH路径：
+> * export GOPATH=/home/thebeeman/zgo/src/github.com/docker/docker/ventor:/home/thebeeman/zgo
