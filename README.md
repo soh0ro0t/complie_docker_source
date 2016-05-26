@@ -22,50 +22,49 @@ make build的目的是创建docker所需的运行环境，生成docker-dev的ima
 
 make binary的目的是创建docker的二进制文件，实质是执行hack/make/xx的shell脚本文件，所以只需将该文件中LDFLAGS的"-w"或"-s"选项去除即可。实际上，直接在主机上编译源码中的hack/make目录下的脚本文件即可。完全没必要再docker中创建源码的编译环境，然后再编译docker源码的方法。此外，由于自动执行时的Makefile文件存在多个步骤，手动执行时需要自己完成。譬如，编译过程中需要设置GOPATH目录，docker_src_code在该目录下被编译生成可执行文件，还需安装brctl-tools等等。
 
-2.1 安装工具集：
+####***2.1 基础工具集安装***
+具体安装的工具需在编译时报错得知，至少包含 btrfs-progs、llvm、golang。
+
+2.1.1 安装下面工具：
 [btrfs-progs](https://github.com/kdave/btrfs-progs.git)
 [llvm](https://mirrors.kernel.org/sourceware/lvm2/LVM2.2.02.103.tgz)
 
-2.2 安装golang，替换系统默认(老版本编译时诸多语法问题过不去)
+2.1.2 安装golang，替换系统默认(老版本编译时诸多语法问题过不去)
 > * curl -fsSL "https://storage.googleapis.com/golang/go1.5.4.linux-amd64.tar.gz"
 > * tar -xvf -C /usr/local go1.5.4.linux-amd64.tar.gz
 > * mv /usr/bin/go /usr/bin/go.old
 > * ln -s /usr/local/go/bin/go /usr/bin/go
 
-2.3 注释掉Makefile中的make build选项
+####***2.2 增加编译文件中符号信息***
+编译源码最重要就是添加符号信息，否则调试看不到源码。Go build的编译选项是ldflags，正确设置改值即可。
 
-2.4 去除hack/make.sh文件中LDFLAGS中"-w"选项；
+2.2.1 注释掉Makefile中的make build选项
+
+2.2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；
     去除hack/make/binary文件中LDFLAGS中"-s"选项
 
-2.5 创建GOPATH，设置环境变量：
-> * mkdir -p /home/thebeeman/zgo && cd /home/thebeeman/zgo && git clone https://github.com/docker/docker
-> * export GOPATH=/home/thebeeman/zgo/docker/vendor
+####***2.3 分部编译docker的工具集***
+2.3.1 创建GOPATH
+> * mkdir -p /home/thebeeman/zgo/src/github.com/docker
 
-(1) 执行hack/make.sh binary，报错
+2.3.2 安装containerd
+> * cd /home/thebeeman/zgo/src/github.com/docker && git clone github.com/docker/docker/containerd
 
----> Making bundle: binary (in bundles/1.12.0-dev/binary)
-Building: bundles/1.12.0-dev/binary-client/docker-1.12.0-dev
-cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/client" in any of:
-	/usr/local/go/src/github.com/docker/docker/api/client (from $GOROOT)
-	/home/thebeeman/zgo/docker/vendor/src/github.com/docker/docker/api/client (from $GOPATH)
+设置： export GOPATH=/home/thebeeman/zgo
+编译： make，生成contaienrd的二进制工具
 
+2.3.3 安装runc
+> * mkdir -p /home/thebeeman/zgo/src/github.com/opencontainers/runc 
+> * cd /home/thebeeman/zgo/src/github.com/opencontainers && git clone https://github.com/opencontainers/runc.git
 
-(2) 根据错误提示，未找到client文件，索引方式为"github.com/docker/docker/api/client"，说明当前"$GOPATH/src/github.com/docker/docker/api/client"不存在client文件夹，查找：
-> * find /home/thebeeman/zgo/docker -name "client" 
+安装：apt-get install libseccom*
+编译：make，生成runc
 
-/home/thebeeman/zgo/docker/api/client
+2.3.4 安装docker client与dockerd
+> * cd /home/thebeeman/zgo/src/github.com/docker && git clone github.com/docker/docker
 
-说明client位于主目录下，于是在主目录下创建索引文件夹：
-> * mkdir -p /home/thebeeman/zgo/src/github.com/docker/
-> * cp /home/thebeeman/zgo/ /home/thebeeman/zgo/src/github.com/docker/ -rf
-> * export GOPATH=/home/thebeeman/zgo/:$GOPATH
+设置：export GOPATH=/home/thebeeman/zgo:/home/thebeeman/zgo/src/github.com/docker/docker/ventor
+运行：hack/make.sh or hack/make.sh binary
+如报错提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
+> * cp $(find /home/thebeeman/zgo  "version_autogen.go") /home/thebeeman/zgo/src/github.com/docker/docker/dockerversion/
 
-(3) 如果提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
-> * cp /home/thebeeman/docker/dockerversion/version_autogen.go  /home/thebeeman/zgo/src/github.com/docker/docker/dockerversion/
-
-(4) 修改daemon socker的默认timeout值，因为调试时需花费大量时间，改之使得daemon等待时间变长：
-
-> * vim ./vendor/src/github.com/docker/go-connections/sockets/sockets.go
-> * -- const defaultTimeout = 32 * time.Second | ++ const defaultTimeout = 10800 * time.Second
-
-2.6 hack/make.sh or hack/make.sh binary
