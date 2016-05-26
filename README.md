@@ -38,8 +38,8 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
     去除hack/make/binary文件中LDFLAGS中"-s"选项
 
 2.5 创建GOPATH，设置环境变量：
-> * mkdir -p /home/thebeeman/zdat && cd /home/thebeeman/zdat && git clone https://github.com/docker/docker
-> * export GOPATH=/home/thebeeman/zdat/docker/vendor
+> * mkdir -p /home/thebeeman/zgo && cd /home/thebeeman/zgo && git clone https://github.com/docker/docker
+> * export GOPATH=/home/thebeeman/zgo/docker/vendor
 
 (1) 执行hack/make.sh binary，报错
 
@@ -47,21 +47,21 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 Building: bundles/1.12.0-dev/binary-client/docker-1.12.0-dev
 cmd/docker/docker.go:9:2: cannot find package "github.com/docker/docker/api/client" in any of:
 	/usr/local/go/src/github.com/docker/docker/api/client (from $GOROOT)
-	/home/thebeeman/zdat/docker/vendor/src/github.com/docker/docker/api/client (from $GOPATH)
+	/home/thebeeman/zgo/docker/vendor/src/github.com/docker/docker/api/client (from $GOPATH)
 
 
 (2) 根据错误提示，未找到client文件，索引方式为"github.com/docker/docker/api/client"，说明当前"$GOPATH/src/github.com/docker/docker/api/client"不存在client文件夹，查找：
-> * find /home/thebeeman/zdat/docker -name "client" 
+> * find /home/thebeeman/zgo/docker -name "client" 
 
-/home/thebeeman/zdat/docker/api/client
+/home/thebeeman/zgo/docker/api/client
 
 说明client位于主目录下，于是在主目录下创建索引文件夹：
-> * mkdir -p /home/thebeeman/zdat/src/github.com/docker/
-> * cp /home/thebeeman/zdat/ /home/thebeeman/zdat/src/github.com/docker/ -rf
-> * export GOPATH=/home/thebeeman/zdat/:$GOPATH
+> * mkdir -p /home/thebeeman/zgo/src/github.com/docker/
+> * cp /home/thebeeman/zgo/ /home/thebeeman/zgo/src/github.com/docker/ -rf
+> * export GOPATH=/home/thebeeman/zgo/:$GOPATH
 
 (3) 如果提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
-> * cp /home/thebeeman/docker/dockerversion/version_autogen.go  /home/thebeeman/src/github.com/docker/docker/dockerversion/
+> * cp /home/thebeeman/docker/dockerversion/version_autogen.go  /home/thebeeman/zgo/src/github.com/docker/docker/dockerversion/
 
 (4) 修改daemon socker的默认timeout值，因为调试时需花费大量时间，改之使得daemon等待时间变长：
 
