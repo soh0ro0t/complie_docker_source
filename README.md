@@ -41,6 +41,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 2.2.1 注释掉Makefile中的make build选项
 
 2.2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；
+
     去除hack/make/binary文件中LDFLAGS中"-s"选项
 
 ####***2.3 分部编译docker的工具集***
@@ -51,6 +52,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 > * cd /home/thebeeman/zgo/src/github.com/docker && git clone github.com/docker/docker/containerd
 
 设置： export GOPATH=/home/thebeeman/zgo
+
 编译： make，生成contaienrd的二进制工具
 
 2.3.3 安装runc
@@ -58,13 +60,16 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 > * cd /home/thebeeman/zgo/src/github.com/opencontainers && git clone https://github.com/opencontainers/runc.git
 
 安装：apt-get install libseccom*
+
 编译：make，生成runc
 
 2.3.4 安装docker client与dockerd
 > * cd /home/thebeeman/zgo/src/github.com/docker && git clone github.com/docker/docker
 
 设置：export GOPATH=/home/thebeeman/zgo:/home/thebeeman/zgo/src/github.com/docker/docker/ventor
+
 运行：hack/make.sh or hack/make.sh binary
+
 如报错提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：
 > * cp $(find /home/thebeeman/zgo  "version_autogen.go") /home/thebeeman/zgo/src/github.com/docker/docker/dockerversion/
 
