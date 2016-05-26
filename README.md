@@ -53,7 +53,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 
 设置： export GOPATH=/home/thebeeman/zgo
 
-编译： make，生成contaienrd的二进制工具
+编译： make，生成containerd的二进制工具
 
 2.3.3 安装runc
 > * mkdir -p /home/thebeeman/zgo/src/github.com/opencontainers/runc 
