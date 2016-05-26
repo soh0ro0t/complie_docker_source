@@ -40,9 +40,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 
 2.2.1 注释掉Makefile中的make build选项
 
-2.2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；
-
-    去除hack/make/binary文件中LDFLAGS中"-s"选项
+2.2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；去除hack/make/binary文件中LDFLAGS中"-s"选项
 
 ####***2.3 分部编译docker的工具集***
 2.3.1 创建GOPATH
