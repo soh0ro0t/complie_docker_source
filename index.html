@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Compliedocker : 使用源码安装Docker，便于调试分析其数据流。">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Compliedocker</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/TheBeeMan/complieDocker">View on GitHub</a>
+
+          <h1 id="project_title">Compliedocker</h1>
+          <h2 id="project_tagline">使用源码安装Docker，便于调试分析其数据流。</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/TheBeeMan/complieDocker/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/TheBeeMan/complieDocker/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="docker-源码编译" class="anchor" href="#docker-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Docker 源码编译</h1>
+
+<hr>
+
+<p>Docker源码编译的目的是加入调试符号，便于动态执行Docker的程序时获取数据流信息，帮助分析者了解Docker的执行过程。编译过程比较复杂，主要由 make build和make binary组成。</p>
+
+<h3>
+<a id="1make-builddocker-container中编译docker源码" class="anchor" href="#1make-builddocker-container%E4%B8%AD%E7%BC%96%E8%AF%91docker%E6%BA%90%E7%A0%81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1.make build【docker container中编译docker源码】</h3>
+
+<p>make build的目的是创建docker所需的运行环境，生成docker-dev的image，然后在docker-dev中编译源码，不建议使用这种方法：</p>
+
+<blockquote>
+<ul>
+<li>docker build -t docker .</li>
+</ul>
+</blockquote>
+
+<p>1.1 使用docker build创建新的镜像，tag为docker，这个镜像中包含很多docker安装过程中所需运行环境，同时也是编译过程中最为耗时和耗磁盘的环节，如果直接运行该指令，可能会因为网络问题导致中途执行失败。有两种解决方法：</p>
+
+<p>第一，定位到出错的容器，然后找到该容器使用的基础镜像image0，手动运行images0，然后执行出错的RUN指令，当该指令完成后再保存为新的image1。最后，退回到docker host，修改Dockerfile，主要为删除出错位置的指令及其前面的指令，并修改FROM 字段为image1，再执行docker build命令。</p>
+
+<p>第二，定位到出错的容器，然后找到该容器使用的基础镜像image0，手动运行images0，然后执行出错位置和之后的所有指令，保证其执行成功，然后退出保存为新的image2，即是doker。</p>
+
+<p>1.2 但是，上述两种方案各有优劣，第一种占用磁盘空间太多，使用Dockerfile成功执行一条RUN指令后会生成中间态镜像层。执行到后面阶段时，每个镜像层有GB级，特别耗磁盘空间，而且上层依赖下层，删除时只能从最上层删除，直到创建这些镜像的Dockerfile中的FROM字段的基础镜像；第二种磁盘耗损较少，但是需对Dockerfile文件中的指令和指令间的关联性了解清楚，因为bash执行和docker执行存在差别。个人建议，两种方法结合使用，尽量使用第二种方法，如遇不确定的指令时保存镜像，然后使用docker build执行，直到遇到下个错误。</p>
+
+<h3>
+<a id="2make-binary主机中直接编译docker源码" class="anchor" href="#2make-binary%E4%B8%BB%E6%9C%BA%E4%B8%AD%E7%9B%B4%E6%8E%A5%E7%BC%96%E8%AF%91docker%E6%BA%90%E7%A0%81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2.make binary【主机中直接编译docker源码】</h3>
+
+<blockquote>
+<ul>
+<li>docker run -v `pwd`:/go/src/github.com/docker/docker --privileged -i -t docker bash</li>
+<li>docker run --privileged docker hack/make.sh test</li>
+<li>docker run --privileged -e AWS_S3_BUCKET=baz -e AWS_ACCESS_KEY=foo -e AWS_SECRET_KEY=bar -e GPG_PASSPHRASE=gloubiboulga docker hack/release.sh</li>
+</ul>
+</blockquote>
+
+<p>make binary的目的是创建docker的二进制文件，实质是执行hack/make/xx的shell脚本文件，所以只需将该文件中LDFLAGS的"-w"或"-s"选项去除即可。实际上，直接在主机上编译源码中的hack/make目录下的脚本文件即可。完全没必要再docker中创建源码的编译环境，然后再编译docker源码的方法。此外，由于自动执行时的Makefile文件存在多个步骤，手动执行时需要自己完成。譬如，编译过程中需要设置GOPATH目录，docker_src_code在该目录下被编译生成可执行文件，还需安装brctl-tools等等。</p>
+
+<h4>
+<a id="21-基础工具集安装" class="anchor" href="#21-%E5%9F%BA%E7%A1%80%E5%B7%A5%E5%85%B7%E9%9B%86%E5%AE%89%E8%A3%85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong><em>2.1 基础工具集安装</em></strong>
+</h4>
+
+<p>具体安装的工具需在编译时报错得知，至少包含 btrfs-progs、llvm、golang。</p>
+
+<p>2.1.1 安装下面工具：
+<a href="https://github.com/kdave/btrfs-progs.git">btrfs-progs</a>
+<a href="https://mirrors.kernel.org/sourceware/lvm2/LVM2.2.02.103.tgz">llvm</a></p>
+
+<p>2.1.2 安装golang，替换系统默认(老版本编译时诸多语法问题过不去)</p>
+
+<blockquote>
+<ul>
+<li>curl -fsSL "<a href="https://storage.googleapis.com/golang/go1.5.4.linux-amd64.tar.gz">https://storage.googleapis.com/golang/go1.5.4.linux-amd64.tar.gz</a>"</li>
+<li>tar -xvf -C /usr/local go1.5.4.linux-amd64.tar.gz</li>
+<li>mv /usr/bin/go /usr/bin/go.old</li>
+<li>ln -s /usr/local/go/bin/go /usr/bin/go</li>
+</ul>
+</blockquote>
+
+<h4>
+<a id="22-增加编译文件中符号信息" class="anchor" href="#22-%E5%A2%9E%E5%8A%A0%E7%BC%96%E8%AF%91%E6%96%87%E4%BB%B6%E4%B8%AD%E7%AC%A6%E5%8F%B7%E4%BF%A1%E6%81%AF" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong><em>2.2 增加编译文件中符号信息</em></strong>
+</h4>
+
+<p>编译源码最重要就是添加符号信息，否则调试看不到源码。Go build的编译选项是ldflags，正确设置改值即可。</p>
+
+<p>2.2.1 注释掉Makefile中的make build选项</p>
+
+<p>2.2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；去除hack/make/binary文件中LDFLAGS中"-s"选项</p>
+
+<h4>
+<a id="23-分部编译docker的工具集" class="anchor" href="#23-%E5%88%86%E9%83%A8%E7%BC%96%E8%AF%91docker%E7%9A%84%E5%B7%A5%E5%85%B7%E9%9B%86" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong><em>2.3 分部编译docker的工具集</em></strong>
+</h4>
+
+<p>2.3.1 创建GOPATH</p>
+
+<blockquote>
+<ul>
+<li>mkdir -p /home/thebeeman/zgo/src/github.com/docker</li>
+</ul>
+</blockquote>
+
+<p>2.3.2 安装containerd</p>
+
+<blockquote>
+<ul>
+<li>cd /home/thebeeman/zgo/src/github.com/docker &amp;&amp; git clone github.com/docker/docker/containerd</li>
+</ul>
+</blockquote>
+
+<p>设置： export GOPATH=/home/thebeeman/zgo</p>
+
+<p>编译： make，生成containerd的二进制工具</p>
+
+<p>2.3.3 安装runc</p>
+
+<blockquote>
+<ul>
+<li>mkdir -p /home/thebeeman/zgo/src/github.com/opencontainers/runc </li>
+<li>cd /home/thebeeman/zgo/src/github.com/opencontainers &amp;&amp; git clone <a href="https://github.com/opencontainers/runc.git">https://github.com/opencontainers/runc.git</a>
+</li>
+</ul>
+</blockquote>
+
+<p>安装：apt-get install libseccom*</p>
+
+<p>编译：make，生成runc</p>
+
+<p>2.3.4 安装docker client与dockerd</p>
+
+<blockquote>
+<ul>
+<li>cd /home/thebeeman/zgo/src/github.com/docker &amp;&amp; git clone github.com/docker/docker</li>
+</ul>
+</blockquote>
+
+<p>设置：export GOPATH=/home/thebeeman/zgo:/home/thebeeman/zgo/src/github.com/docker/docker/ventor</p>
+
+<p>运行：hack/make.sh or hack/make.sh binary</p>
+
+<p>(1) 报错提示“useragent.go : 18 Version undefined...”之类的错误，进行如下操作：</p>
+
+<blockquote>
+<ul>
+<li>cp $(find /home/thebeeman/zgo  "version_autogen.go") /home/thebeeman/zgo/src/github.com/docker/docker/dockerversion/</li>
+</ul>
+</blockquote>
+
+<p>(2) 报错提示 "../containerd/api/grpc/types/api.pb.go:74: undefined: proto.ProtoPackageIsVersion1"</p>
+
+<p>说明编译docker源码中的api.pb.go文件时，由于GOPATH路径存在先后问题，错误的定位到../containerd/api/grpc/types/api.pb.go文件中，而非docker自身路径下。更改GOPATH路径：</p>
+
+<blockquote>
+<ul>
+<li>export GOPATH=/home/thebeeman/zgo/src/github.com/docker/docker/ventor:/home/thebeeman/zgo</li>
+</ul>
+</blockquote>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Compliedocker maintained by <a href="https://github.com/TheBeeMan">TheBeeMan</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
