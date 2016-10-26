@@ -47,7 +47,7 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 > * mkdir -p /home/thebeeman/zgo/src/github.com/docker
 
 2.3.2 安装containerd
-> * cd /home/thebeeman/zgo/src/github.com/docker && git clone github.com/docker/docker/containerd
+> * cd /home/thebeeman/zgo/src/github.com/docker && git clone github.com/docker/containerd
 
 设置： export GOPATH=/home/thebeeman/zgo
 
