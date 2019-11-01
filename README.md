@@ -3,7 +3,8 @@
 ------
 
 Docker源码编译的目的是加入调试符号，便于动态执行Docker的程序时获取数据流信息，帮助分析者了解Docker的执行过程。编译过程比较复杂，主要由 make build和make binary组成。
-###1.make build【docker container中编译docker源码】
+
+### 1.make build【docker container中编译docker源码】
 make build的目的是创建docker所需的运行环境，生成docker-dev的image，然后在docker-dev中编译源码，不建议使用这种方法：
 > * docker build -t docker .
 
