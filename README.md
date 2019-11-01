@@ -15,14 +15,14 @@ make build的目的是创建docker所需的运行环境，生成docker-dev的ima
 
 1.2 但是，上述两种方案各有优劣，第一种占用磁盘空间太多，使用Dockerfile成功执行一条RUN指令后会生成中间态镜像层。执行到后面阶段时，每个镜像层有GB级，特别耗磁盘空间，而且上层依赖下层，删除时只能从最上层删除，直到创建这些镜像的Dockerfile中的FROM字段的基础镜像；第二种磁盘耗损较少，但是需对Dockerfile文件中的指令和指令间的关联性了解清楚，因为bash执行和docker执行存在差别。个人建议，两种方法结合使用，尽量使用第二种方法，如遇不确定的指令时保存镜像，然后使用docker build执行，直到遇到下个错误。
 
-###2.make binary【主机中直接编译docker源码】
+### 2.make binary【主机中直接编译docker源码】
 > * docker run -v \`pwd\`:/go/src/github.com/docker/docker --privileged -i -t docker bash
 > * docker run --privileged docker hack/make.sh test
 > * docker run --privileged -e AWS_S3_BUCKET=baz -e AWS_ACCESS_KEY=foo -e AWS_SECRET_KEY=bar -e GPG_PASSPHRASE=gloubiboulga docker hack/release.sh
 
 make binary的目的是创建docker的二进制文件，实质是执行hack/make/xx的shell脚本文件，所以只需将该文件中LDFLAGS的"-w"或"-s"选项去除即可。实际上，直接在主机上编译源码中的hack/make目录下的脚本文件即可。完全没必要再docker中创建源码的编译环境，然后再编译docker源码的方法。此外，由于自动执行时的Makefile文件存在多个步骤，手动执行时需要自己完成。譬如，编译过程中需要设置GOPATH目录，docker_src_code在该目录下被编译生成可执行文件，还需安装brctl-tools等等。
 
-####***2.1 基础工具集安装***
+#### ***2.1 基础工具集安装***
 具体安装的工具需在编译时报错得知，至少包含 btrfs-progs、llvm、golang。
 
 2.1.1 安装下面工具：
@@ -35,14 +35,14 @@ make binary的目的是创建docker的二进制文件，实质是执行hack/make
 > * mv /usr/bin/go /usr/bin/go.old
 > * ln -s /usr/local/go/bin/go /usr/bin/go
 
-####***2.2 增加编译文件中符号信息***
+#### ***2.2 增加编译文件中符号信息***
 编译源码最重要就是添加符号信息，否则调试看不到源码。Go build的编译选项是ldflags，正确设置改值即可。
 
 2.2.1 注释掉Makefile中的make build选项
 
 2.2.2 去除hack/make.sh文件中LDFLAGS中"-w"选项；去除hack/make/binary文件中LDFLAGS中"-s"选项
 
-####***2.3 分部编译docker的工具集***
+#### ***2.3 分部编译docker的工具集***
 2.3.1 创建GOPATH
 > * mkdir -p /home/thebeeman/zgo/src/github.com/docker
 
